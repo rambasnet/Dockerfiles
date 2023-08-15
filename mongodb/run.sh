@@ -1,3 +1,5 @@
+#/bin/bash
+
 #!/bin/bash
 
 # get directory of this script
@@ -24,7 +26,7 @@ windows() {
 }
 
 winenv() {
-  if windows
+    if windows
     then
 	winpty "$@"
     else
@@ -52,7 +54,7 @@ DOCKER_TAG=$(basename "$SCRIPT_DIR")
 HOST_DIR="$(winpath "$SCRIPT_DIR")"
 
 # Guest (target) directory where directoy is mounted
-GUEST_DIR=/app
+GUEST_DIR=/data/db
 
 if [ ! -f Dockerfile ]
 then
@@ -68,23 +70,21 @@ else
     echo "docker build failed."
     exit 1
 fi
-
-echo "docker run '$DOCKER_TAG' (mounting host '$HOST_DIR' as '$GUEST_DIR'): " "$@"
+mkdir -p "$HOST_DIR/data"
+echo "docker run '$DOCKER_TAG' (mounting host '$HOST_DIR/data' as '$GUEST_DIR'): " "$@"
 if [ $# -gt 0 ]
 then
     winenv docker run -it --rm \
 	   -v "$HOST_DIR:$GUEST_DIR" \
-     -h ubuntu \
      -p 8080:8080 \
-      --name python \
 	   "$DOCKER_TAG" \
 	   "$@"
 else
     echo "Type CTRL-D or exit to exit the interactive shell"
-    winenv docker run -it --rm \
-	   -v "$HOST_DIR:$GUEST_DIR" \
-     -h ubuntu \
-     -p 8080:8080 \
-	   "$DOCKER_TAG" \
-	   bash -c "cd $GUEST_DIR; bash git-authenticate.sh; bash -i"
+    winenv docker run -d \
+	   -v "$HOST_DIR/data:$GUEST_DIR" \
+     -p 27017:27017 \
+     -p 28018:28018 \
+     --name my_mongodb \
+	   "$DOCKER_TAG"
 fi

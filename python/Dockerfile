@@ -4,7 +4,7 @@ RUN apt update \
   && apt install -y \
   sqlite3 build-essential time curl cmake git nano dos2unix \
   net-tools iputils-ping iproute2 \
-  && apt-get clean \
+  && apt clean \
   && /bin/rm -rf /var/lib/apt/lists/*
 
 RUN pip install --upgrade pip
